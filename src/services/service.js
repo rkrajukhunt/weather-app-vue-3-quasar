@@ -5,13 +5,14 @@ export function isValidResponse(resp) {
 }
 
 export const WEATER = Axios.create({
-	baseURL: 'http://api.openweathermap.org/data/2.5'
-})
-
-WEATER.interceptors.request.use((config) => {
-	config.headers['Content-Type'] = 'application/json'
-	config.headers["Access-Control-Allow-Origin"] = "*"
-	return config
+	baseURL: 'https://cors-anywhere.herokuapp.com/http://api.openweathermap.org/data/2.5',
+  withCredentials: false,
+  headers: {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "*"
+  }
 })
 
 export const methods = {

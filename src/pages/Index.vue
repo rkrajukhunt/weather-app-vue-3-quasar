@@ -151,7 +151,7 @@ export default {
     const fetchForecast = async () => {
       try {
         if(!isForeCast.value) {
-          $q.loading.show({ message: 'fetch weather info process is in progress. Hang on...'});
+          $q.loading.show({ message: 'forecast process is in progress. Hang on...'});
           const result = await FETCH_FORECAST_INFO_BY_CITY_ID(selectedCity.value.id)
           forecastInfo.value = result;
           await forecastLogic(result)
@@ -173,7 +173,7 @@ export default {
     const forecastLogic = async  (data) => {
       forecastOverview.value = Object.values(await data.list.reduce((acc, day) => {
         const date = day.dt_txt.split(" ")[0];
-
+        
         if (acc[date]) {
           acc[date].tempMax = Math.max(acc[date].tempMax, day.main.temp_max);
           acc[date].tempMin = Math.min(acc[date].tempMin, day.main.temp_min);

@@ -17,7 +17,7 @@
                 label="Select City"
                 v-model="selectedCity"
                 :options="optionsCities"
-                @update:model-value="fetchWeatherByCityChange"
+                @update:model-value="onChangeCity"
               />
             </q-card-section>
 
@@ -42,7 +42,7 @@
 
             </q-card-section>
 
-            <q-card-actions v-if="selectedCity">
+            <q-card-actions v-if="selectedCity && weatherInfo">
               <q-btn
                 class="q-ma-sm"
                 unelevated
@@ -53,7 +53,9 @@
             </q-card-actions>
           </q-card>
         </div>
-        <div class="col-12 col-md-6 mt-2 col-md-auto" v-if="isForeCast">
+      </div>
+      <div class="row q-col-gutter-x-xs q-col-gutter-y-lg" v-if="isForeCast" style="margin-top: 0px">
+        <div class="col-12 col-md-6 mt-2 col-md-auto">
           <q-card>
             <q-table
               title="Forecast Weather"
@@ -99,28 +101,30 @@
             </div>
           </q-card>
         </div>
-        <div class="col-12 col-md-6 mt-2 col-md-auto" v-if="isForeCast">
-          <q-table
-            title="Forecast Weather Overview"
-            :rows="forecastOverview"
-            :columns="forecastWeatherOverviewColumns"
-            row-key="date"
-          />
-        </div>
+        <div class="col-12 col-md-6 mt-2 col-md-auto">
+        <q-table
+          title="Forecast Weather Overview"
+          :rows="forecastOverview"
+          :columns="forecastWeatherOverviewColumns"
+          row-key="date"
+        />
+      </div>
       </div>
     </div>
   </q-page>
 </template>
 
 <script>
-import { optionsCities, weatherDummyRes, forecastDummyRes, forecastWeatherInfoColumns, forecastWeatherOverviewColumns } from "./config";
+import { optionsCities, forecastWeatherInfoColumns, forecastWeatherOverviewColumns } from "./config";
 import { FETCH_WEATHER_INFO_BY_CITY_ID, FETCH_FORECAST_INFO_BY_CITY_ID } from '../services/index'
 import { ref, computed } from 'vue';
-import { date as moment } from 'quasar'
+import { date as moment, useQuasar } from 'quasar'
 
 export default {
   name: "WeatherInfoApp",
   setup() {
+    const $q = useQuasar()
+
     const selectedCity = ref(null);
     const selectedDate = ref(null);
 
@@ -132,11 +136,14 @@ export default {
 
     const fetchWeatherByCityChange = async () => {
       try {
-        const { data } = await FETCH_WEATHER_INFO_BY_CITY_ID(selectedCity.value.id);
-        weatherInfo.value = data;
+        $q.loading.show({ message: 'fetch weather info process is in progress. Hang on...'});
+        const result = await FETCH_WEATHER_INFO_BY_CITY_ID(selectedCity.value.id);
+        weatherInfo.value = result;
       } catch (error) {
         console.log("got the error : {}", error);
-        weatherInfo.value = weatherDummyRes;
+        $q.notify({ color: 'negative', message: 'Something went wrong. Try again', position: 'bottom-right'})
+      } finally {
+        $q.loading.hide();
       }
       isForeCast.value = false;
     }
@@ -144,14 +151,16 @@ export default {
     const fetchForecast = async () => {
       try {
         if(!isForeCast.value) {
-          const { data } = await FETCH_FORECAST_INFO_BY_CITY_ID(selectedCity.value.id)
-          forecastInfo.value = data;
-          await forecastLogic(data)
+          $q.loading.show({ message: 'fetch weather info process is in progress. Hang on...'});
+          const result = await FETCH_FORECAST_INFO_BY_CITY_ID(selectedCity.value.id)
+          forecastInfo.value = result;
+          await forecastLogic(result)
         }
       } catch (error) {
-        forecastInfo.value = forecastDummyRes;
-        await forecastLogic(forecastDummyRes)
         console.log("got the error on fetch forecast: {}", error);
+        $q.notify({ color: 'negative', message: 'Something went wrong. Try again', position: 'bottom-right'})
+      } finally {
+        $q.loading.hide();
       }
 
       if(forecastInfo.value && forecastInfo.value.list.length > 0)
@@ -176,6 +185,14 @@ export default {
       }, {}));
     };
 
+    const onChangeCity = async () => {
+      isForeCast.value = false;
+      weatherInfo.value = null;
+      forecastInfo.value = null;
+      forecastOverview.value = [];
+      await fetchWeatherByCityChange();
+    }
+
     const fetchWeatherForecastByDate = computed(() => {
       return forecastInfo.value.list.filter(e => e.dt_txt.split(" ")[0] === selectedDate.value)
     })
@@ -193,6 +210,7 @@ export default {
       forecastWeatherOverviewColumns,
       forecastLogic,
       fetchForecast,
+      onChangeCity,
       fetchWeatherByCityChange,
     };
   },

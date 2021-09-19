@@ -1555,14 +1555,14 @@ export const forecastDummyRes = {
 
 export const forecastWeatherInfoColumns = [
   { name: 'date', label: 'Date', field: 'dt_txt' },
-  { name: 'temp', label: 'Temp', field: 'main.temp', sortable: true },
-  { name: 'minTemp', label: 'Min Temp', field: 'main.temp_min', sortable: true },
-  { name: 'maxTemp', label: 'Max Temp', field: 'main.temp_max', sortable: true },
-  { name: 'wind', label: 'Wind', field: 'wind.speed', sortable: true },
+  { name: 'temp', label: 'Temp', field: 'main.temp', sortable: true, align: 'center'},
+  { name: 'minTemp', label: 'Min Temp', field: 'main.temp_min', sortable: true, align: 'center' },
+  { name: 'maxTemp', label: 'Max Temp', field: 'main.temp_max', sortable: true, align: 'center' },
+  { name: 'wind', label: 'Wind', field: 'wind.speed', sortable: true, align: 'center' },
 ]
 
 export const forecastWeatherOverviewColumns = [
-  { name: 'date', label: 'Date', field: 'date', sortable: true },
-  { name: 'minTemp', label: 'Min Temp', field: 'tempMin', sortable: true },
-  { name: 'maxTemp', label: 'Max Temp', field: 'tempMax', sortable: true },
+  { name: 'date', label: 'Date', field: 'date', sortable: true, align: 'center' },
+  { name: 'minTemp', label: 'Min Temp', field: 'tempMin', sortable: true, align: 'center' },
+  { name: 'maxTemp', label: 'Max Temp', field: 'tempMax', sortable: true, align: 'center' },
 ]

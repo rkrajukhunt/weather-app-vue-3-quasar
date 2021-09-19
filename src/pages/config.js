@@ -1563,6 +1563,6 @@ export const forecastWeatherInfoColumns = [
 
 export const forecastWeatherOverviewColumns = [
   { name: 'date', label: 'Date', field: 'date', sortable: true },
-  { name: 'minTemp', label: 'Min Temp', field: 'tempMax', sortable: true },
-  { name: 'maxTemp', label: 'Max Temp', field: 'tempMin', sortable: true },
+  { name: 'minTemp', label: 'Min Temp', field: 'tempMin', sortable: true },
+  { name: 'maxTemp', label: 'Max Temp', field: 'tempMax', sortable: true },
 ]

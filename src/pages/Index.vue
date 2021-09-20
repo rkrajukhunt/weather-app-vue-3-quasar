@@ -54,8 +54,8 @@
           </q-card>
         </div>
       </div>
-      <div class="row q-col-gutter-x-xs q-col-gutter-y-lg" v-if="isForeCast" style="margin-top: 0px">
-        <div class="col-12 col-md-6 mt-2 col-md-auto">
+      <div class="row q-col-gutter-x-xs q-col-gutter-y-lg q-pt-md" v-if="isForeCast">
+        <div class="col-12 col-md-6 mt-2 col-md-auto q-pr-sm">
           <q-card>
             <q-table
               title="Forecast Weather"
@@ -173,7 +173,7 @@ export default {
     const forecastLogic = async  (data) => {
       forecastOverview.value = Object.values(await data.list.reduce((acc, day) => {
         const date = day.dt_txt.split(" ")[0];
-        
+
         if (acc[date]) {
           acc[date].tempMax = Math.max(acc[date].tempMax, day.main.temp_max);
           acc[date].tempMin = Math.min(acc[date].tempMin, day.main.temp_min);

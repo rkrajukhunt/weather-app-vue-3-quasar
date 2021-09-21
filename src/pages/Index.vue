@@ -1,6 +1,7 @@
 <template>
   <q-page class="q-pa-lg q-pl-lg">
     <div class="q-pa-md">
+
       <div class="row q-col-gutter-x-xs q-col-gutter-y-lg">
         <div class="col-12 col-md-12 col-md-auto">
           <q-card class="my-card">
@@ -54,6 +55,7 @@
           </q-card>
         </div>
       </div>
+
       <div class="row q-col-gutter-x-xs q-col-gutter-y-lg q-pt-md" v-if="isForeCast">
         <div class="col-12 col-md-6 mt-2 col-md-auto q-pr-sm">
           <q-card>
@@ -62,11 +64,13 @@
               :rows="fetchWeatherForecastByDate"
               :columns="forecastWeatherInfoColumns"
               row-key="date"
+              :pagination="pagination"
+              :rows-per-page-options="[8, 15]"
             >
               <template v-slot:body="props">
                 <q-tr :props="props">
                   <q-td key="date" :props="props">
-                    {{ props.row.dt_txt.split(" ")[0] }}
+                    {{ props.row.hour }}
                   </q-td>
                   <q-td key="temp" :props="props">
                     {{ props.row.main.temp }} <span>&#8451;</span>
@@ -101,15 +105,19 @@
             </div>
           </q-card>
         </div>
+
         <div class="col-12 col-md-6 mt-2 col-md-auto">
-        <q-table
-          title="Forecast Weather Overview"
-          :rows="forecastOverview"
-          :columns="forecastWeatherOverviewColumns"
-          row-key="date"
-        />
+          <q-table
+            title="Forecast Weather Overview"
+            :rows="forecastOverview"
+            :columns="forecastWeatherOverviewColumns"
+            row-key="date"
+            :pagination="pagination"
+            :rows-per-page-options="[8, 15]"
+          />
+        </div>
       </div>
-      </div>
+
     </div>
   </q-page>
 </template>
@@ -118,13 +126,15 @@
 import { optionsCities, forecastWeatherInfoColumns, forecastWeatherOverviewColumns } from "./config";
 import { FETCH_WEATHER_INFO_BY_CITY_ID, FETCH_FORECAST_INFO_BY_CITY_ID } from '../services/index'
 import { ref, computed } from 'vue';
-import { date as moment, useQuasar } from 'quasar'
+import { useQuasar } from 'quasar'
+import moment from 'moment';
 
 export default {
   name: "WeatherInfoApp",
   setup() {
     const $q = useQuasar()
 
+    const pagination = ref({ rowsPerPage:8 });
     const selectedCity = ref(null);
     const selectedDate = ref(null);
 
@@ -153,18 +163,27 @@ export default {
         if(!isForeCast.value) {
           $q.loading.show({ message: 'forecast process is in progress. Hang on...'});
           const result = await FETCH_FORECAST_INFO_BY_CITY_ID(selectedCity.value.id)
+
+          await Promise.all(result.list.map(e => {
+            const dt = e.dt_txt.split(" ");
+            e.date = dt[0];
+            e.hour = moment(dt[1], "hh").format('LT');
+            return e;
+          }))
+
           forecastInfo.value = result;
           await forecastLogic(result)
         }
       } catch (error) {
         console.log("got the error on fetch forecast: {}", error);
+        $q.loading.hide();
         $q.notify({ color: 'negative', message: 'Something went wrong. Try again', position: 'bottom-right'})
       } finally {
         $q.loading.hide();
       }
 
       if(forecastInfo.value && forecastInfo.value.list.length > 0)
-        selectedDate.value = forecastInfo.value.list[0].dt_txt.split(" ")[0];
+        selectedDate.value = forecastInfo.value.list[0].date;
 
       isForeCast.value = !isForeCast.value
     }
@@ -172,8 +191,8 @@ export default {
     // find to overview of day by day
     const forecastLogic = async  (data) => {
       forecastOverview.value = Object.values(await data.list.reduce((acc, day) => {
-        const date = day.dt_txt.split(" ")[0];
-
+        const { date } = day;
+        console.log(date)
         if (acc[date]) {
           acc[date].tempMax = Math.max(acc[date].tempMax, day.main.temp_max);
           acc[date].tempMin = Math.min(acc[date].tempMin, day.main.temp_min);
@@ -181,6 +200,7 @@ export default {
           acc[date] = { tempMax: day.main.temp_max, tempMin: day.main.temp_min };
         }
         acc[date].date = date;
+        console.log(acc)
         return acc;
       }, {}));
     };
@@ -198,6 +218,7 @@ export default {
     })
 
     return {
+      pagination,
       isForeCast,
       selectedCity,
       selectedDate,
